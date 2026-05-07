@@ -131,8 +131,22 @@ async function load() {
     }
   } catch {}
   $("meta").textContent = meta;
+  applyHashFilters();
   renderFilters();
   render();
+}
+
+function applyHashFilters() {
+  const h = (location.hash || "").replace(/^#/, "");
+  if (!h) return;
+  for (const part of h.split("&")) {
+    const [k, v] = part.split("=");
+    if (!v) continue;
+    const vals = decodeURIComponent(v).split(",").filter(Boolean);
+    if (k === "domain") for (const d of vals) state.domains.add(d);
+    else if (k === "tag") for (const t of vals) state.tags.add(t);
+    else if (k === "q") { state.q = decodeURIComponent(v); const s = $("search"); if (s) s.value = state.q; }
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {

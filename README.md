@@ -203,6 +203,11 @@ emails are re‑parsed.
 - **No build step.** Just static `index.html` + `app.js` + `styles.css`.
 - **No‑cache server** (`scripts/serve.py`) so edits to the SPA are picked up
   on the next browser refresh — no hard‑refresh needed.
+- **Shareable filter URLs.** Filters can be pre-applied via the URL hash, so
+  you can bookmark or share a filtered view:
+  - `…/#domain=AI` — pre-select the AI domain
+  - `…/#domain=Cloud,DevOps&tag=Kubernetes` — multiple domains and a tag
+  - `…/#q=react` — pre-fill the search box
 
 ---
 
