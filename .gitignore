@@ -1,0 +1,26 @@
+# --- runtime / private data ---
+data/data.json
+data/state.json
+data/ingest_report.json
+data/fetch.log
+data/.msal_cache.bin
+dump/*
+!dump/.gitkeep
+
+# --- editor / OS ---
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# --- python ---
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+
+# --- internal session notes ---
+plan.md

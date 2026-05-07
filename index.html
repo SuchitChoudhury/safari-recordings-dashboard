@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Safari Livetraining Recordings</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="logo">📺</span><h1>Safari Livetraining Recordings</h1></div>
+  <div class="meta" id="meta">loading…</div>
+</header>
+<section class="controls">
+  <input id="search" type="search" placeholder="Search by event, presenter, or tag…" autofocus />
+  <select id="sort">
+    <option value="received_desc">Newest first</option>
+    <option value="received_asc">Oldest first</option>
+    <option value="event_asc">Event A→Z</option>
+    <option value="presenter_asc">Presenter A→Z</option>
+  </select>
+  <button id="clearTags" class="btn-secondary" type="button">Clear filters</button>
+</section>
+<section class="filter-bar">
+  <div class="filter-row">
+    <span class="filter-label">Filter by domain</span>
+    <div class="chips" id="domainBar"></div>
+  </div>
+  <div class="filter-row" id="subTagRow" hidden>
+    <span class="filter-label">Refine by tag</span>
+    <div class="chips" id="tagBar"></div>
+  </div>
+</section>
+<main>
+  <div id="results"></div>
+  <div id="empty" class="empty hidden">No recordings match your filters.</div>
+</main>
+<footer>
+  <span id="count"></span>
+  <span class="sep">•</span>
+  <span>Click any course name to search it on O'Reilly Learning.</span>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

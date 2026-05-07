@@ -1,0 +1,72 @@
+[
+  {
+    "event": "SQL Foundations for Data Analysis",
+    "presenter": "Sample Presenter",
+    "received": "2026-05-02",
+    "domains": ["Data"],
+    "tags": ["Data Analysis", "SQL"]
+  },
+  {
+    "event": "Deep Learning for Beginners in 3 Weeks",
+    "presenter": "Sample Presenter",
+    "received": "2026-04-22",
+    "domains": ["AI"],
+    "tags": ["AI", "Deep Learning", "Learning", "Machine Learning"]
+  },
+  {
+    "event": "Microsoft Fabric Data Engineer Associate Bootcamp (DP-700)",
+    "presenter": "Sample Presenter",
+    "received": "2026-04-16",
+    "domains": ["Data", "Cloud", "Software Engineering"],
+    "tags": ["Azure", "Certification", "Data Engineering", "Microsoft Fabric"]
+  },
+  {
+    "event": "Agentic AI in Platform Engineering",
+    "presenter": "Sample Presenter",
+    "received": "2026-04-15",
+    "domains": ["AI", "DevOps"],
+    "tags": ["AI", "Agentic AI", "Platform Engineering"]
+  },
+  {
+    "event": "Aligning Large Language Models",
+    "presenter": "Sample Presenter",
+    "received": "2026-04-15",
+    "domains": ["AI"],
+    "tags": ["AI", "LLM", "Machine Learning"]
+  },
+  {
+    "event": "Write Python Code with ChatGPT and Claude",
+    "presenter": "Sample Presenter",
+    "received": "2026-04-11",
+    "domains": ["AI", "Languages"],
+    "tags": ["AI", "GenAI", "Programming", "Python"]
+  },
+  {
+    "event": "Kubernetes Fundamentals in 3 Days",
+    "presenter": "Sample Presenter",
+    "received": "2026-03-20",
+    "domains": ["DevOps", "Cloud"],
+    "tags": ["Cloud", "DevOps", "Kubernetes"]
+  },
+  {
+    "event": "Introduction to Docker and Containers",
+    "presenter": "Sample Presenter",
+    "received": "2026-03-12",
+    "domains": ["DevOps"],
+    "tags": ["Docker", "DevOps"]
+  },
+  {
+    "event": "Modern React Patterns",
+    "presenter": "Sample Presenter",
+    "received": "2026-02-28",
+    "domains": ["Frontend", "Languages"],
+    "tags": ["Frontend", "JavaScript", "React"]
+  },
+  {
+    "event": "OWASP Top 10 for Developers",
+    "presenter": "Sample Presenter",
+    "received": "2026-02-14",
+    "domains": ["Security"],
+    "tags": ["Security"]
+  }
+]
