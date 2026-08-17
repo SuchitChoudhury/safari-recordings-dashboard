@@ -62,12 +62,11 @@ function renderFilters() {
 }
 
 function applyFilters() {
-  const q = state.q.trim().toLowerCase();
+  const q = state.q.trim();
   const out = state.entries.filter(e => {
     if (state.domains.size && !(e.domains || []).some(d => state.domains.has(d))) return false;
     for (const t of state.tags) if (!(e.tags || []).includes(t)) return false;
-    if (!q) return true;
-    return [e.event, e.presenter, ...(e.tags || []), ...(e.domains || [])].join(" ").toLowerCase().includes(q);
+    return SearchLogic.matchesEntry(e, q);
   });
   const sorters = {
     received_asc:  (a, b) => (a.received || "").localeCompare(b.received || ""),
@@ -150,7 +149,17 @@ function applyHashFilters() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  $("search").addEventListener("input", debounce(e => { state.q = e.target.value; render(); }, 100));
+  $("search").addEventListener("input", debounce(e => {
+    const nextQuery = e.target.value;
+    const startsNewSearch = !state.q.trim() && nextQuery.trim();
+    state.q = nextQuery;
+    if (startsNewSearch && (state.domains.size || state.tags.size)) {
+      state.domains.clear();
+      state.tags.clear();
+      renderFilters();
+    }
+    render();
+  }, 100));
   $("sort").addEventListener("change", e => { state.sort = e.target.value; render(); });
   $("clearTags").addEventListener("click", () => { state.domains.clear(); state.tags.clear(); renderFilters(); render(); });
   load();
