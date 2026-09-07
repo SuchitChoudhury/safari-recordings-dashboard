@@ -55,7 +55,7 @@ search in a new tab.
 │   │ Tags  (when a domain is selected): LLM · Kubernetes · React · …    │     │
 │   ├────────────────────────────────────────────────────────────────────┤     │
 │   │ ┌─ event title (clickable) ──────────────────────────────────────┐ │     │
-│   │ │ 👤 presenter      📅 date     [domain chips] [tag chips]       │ │     │
+│   │ │ 👤 presenter      📅 date     [domain chips] [tag chips]      │ │     │
 │   │ └────────────────────────────────────────────────────────────────┘ │     │
 │   │                                  …                                 │     │
 │   └────────────────────────────────────────────────────────────────────┘     │
