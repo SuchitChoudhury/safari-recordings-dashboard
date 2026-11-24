@@ -117,7 +117,7 @@ def _build_entry(subject: str, sender: str, received_date: str, html: str, sourc
         "event": event,
         "presenter": presenter,
         "received": received_date,
-        "domains": assign_domains(tags),
+        "domains": assign_domains(tags, event),
         "tags": tags,
         "sender": sender,
         "subject": subject,

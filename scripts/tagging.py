@@ -86,7 +86,7 @@ def extract_recording_link(html_body: str) -> str | None:
 
 
 # ---------- topic tagging rules ----------
-# (keyword substring, [tags]). Tags are unioned across all matching rules.
+# Literal keywords are matched at word boundaries; detail tags may overlap.
 TOPIC_RULES: list[tuple[str, list[str]]] = [
     ("sql",                    ["SQL", "Data Analysis"]),
     ("data analysis",          ["Data Analysis"]),
@@ -127,7 +127,7 @@ TOPIC_RULES: list[tuple[str, list[str]]] = [
     ("autogen",                ["AI", "Agentic AI", "AutoGen"]),
     ("mcp",                    ["MCP", "AI"]),
     ("model context protocol", ["MCP", "AI"]),
-    ("context engineering",    ["MCP", "AI", "Prompt Engineering"]),
+    ("context engineering",    ["AI", "Prompt Engineering"]),
     ("prompting",              ["Prompt Engineering", "AI"]),
     ("prompt",                 ["Prompt Engineering", "AI"]),
     ("distributed system",     ["Distributed Systems", "Architecture"]),
@@ -234,13 +234,12 @@ TOPIC_RULES: list[tuple[str, list[str]]] = [
     ("product manage",         ["Product Management"]),
     ("project manage",         ["Project Management"]),
     ("leadership",             ["Leadership", "Career"]),
-    ("management",             ["Management", "Career"]),
     ("career",                 ["Career"]),
     ("interview",              ["Interview Prep", "Career"]),
     ("resume",                 ["Career"]),
     ("communication",          ["Communication", "Soft Skills"]),
     ("negotiation",            ["Negotiation", "Soft Skills"]),
-    ("learning",               ["Learning"]),
+    ("learning skills",        ["Learning"]),
     ("neuroscience",           ["Neuroscience", "Productivity"]),
     ("productivity",           ["Productivity"]),
     ("time management",        ["Productivity"]),
@@ -283,6 +282,93 @@ TOPIC_RULES: list[tuple[str, list[str]]] = [
     ("unreal",                 ["Unreal", "Game Dev"]),
 ]
 
+_EXTRA_TOPIC_RULES: list[tuple[str, list[str]]] = [
+    (r"azure|az-\d+", ["Azure", "Cloud"]),
+    (r"cloud|openstack|solutions architect", ["Cloud"]),
+    (r"ai|ml|gen\s?ai|llm(?:ops)?|slms?", ["AI"]),
+    (r"agents?|agentkit|agent-oriented|multi-agent|agentic", ["AI", "Agentic AI"]),
+    (r"gemini|antigravity|codex|openclaw|microsoft foundry|azure cognitive services", ["AI"]),
+    (r"harness engineering|loop engineering|continual learning|reasoning language models", ["AI"]),
+    (r"pytorch|llama|vllm|lm studio|open weight|ai-\d+", ["AI", "Machine Learning"]),
+    (r"gpt-\d+(?:\.\d+)*|large language models?", ["AI", "LLM"]),
+    (r"graphrag|langgraph|retrieval augmented", ["AI", "RAG"]),
+    (r"data cleaning|data pipelines?|data strategies|big data|warehousing", ["Data Engineering"]),
+    (r"data architect(?:ure)?s?|data design", ["Data Architecture"]),
+    (r"pandas|dask|dataframe", ["Data Analysis"]),
+    (r"visualizations?", ["Data Visualization"]),
+    (r"sql server", ["SQL", "Database"]),
+    (r"postgres(?:ql)?", ["PostgreSQL", "Database"]),
+    (r"nosql|no-sql", ["NoSQL", "Database"]),
+    (r"pl-300", ["Power BI", "Certification"]),
+    (r"algorithmic (?:risk management|trading)", ["Finance", "Data Analysis"]),
+    (r"containers?|podman|openshift", ["Containers", "DevOps"]),
+    (r"helm|istio|knative", ["Kubernetes", "DevOps"]),
+    (r"jenkins|continuous delivery|infrastructure as code|policy as code|sre|dataops", ["DevOps"]),
+    (r"splunk|observability", ["Observability", "DevOps"]),
+    (r"backend|spring(?: mvc)?|asp\.net|ef core|python web development", ["Backend"]),
+    (r"frontends?|micro-frontends?|blazor|ui|ux|web performance", ["Frontend"]),
+    (r"html5", ["HTML", "Frontend"]),
+    (r"web development|web scraping|regular expressions", ["Programming"]),
+    (r"java|jvm|junit", ["Java", "Programming"]),
+    (r"f#", ["F#", "Programming"]),
+    (r"architectures?|architectural|well-architected|domain-driven design|modular monoliths", ["Architecture"]),
+    (r"forward deployed engineer|software development|codebases?", ["Software Engineering"]),
+    (r"pytest|junit|testing", ["Testing"]),
+    (r"secops|devsecops|owasp|hacking|hackers?|osint|encryption|selinux|secure|securing", ["Security"]),
+    (r"identity and access management", ["Security", "Identity"]),
+    (r"linux|systemd|lfcs", ["Linux", "Operating Systems"]),
+    (r"tcp/ip|wireshark|subnetting|netops|internet", ["Networking"]),
+    (r"shell scripting|command line", ["Shell"]),
+    (r"critical thinking|strategic(?:ally)? thinking|think strategically|decision making", ["Thinking Skills"]),
+    (r"impostor|burnout|stress|reclaim your focus|connected thinking", ["Productivity"]),
+    (r"managing (?:up|your manager)|new manager|your boss|engineering management", ["Management", "Career"]),
+    (r"business strategy|retrospectives|user stories|backlog management|product teams", ["Management"]),
+    (r"giving effective feedback|business writing|better email|powerpoint|better slides", ["Communication"]),
+    (r"communicating with management", ["Communication", "Management"]),
+    (r"job search|linkedin|staff engineer", ["Career"]),
+    (r"fundamentals of learning|learn faster|mental models", ["Learning"]),
+    (r"robotic process automation", ["Automation"]),
+    (r"quantum computing", ["Quantum Computing"]),
+]
+
+# Short tokens and stems must not match inside unrelated words.
+_PATTERN_OVERRIDES = {
+    "git": r"git|github actions",
+    "rag": r"rag|graphrag",
+    "network": r"(?<!linkedin )network(?:ing|s)?(?!\s+algorithms)",
+    "go ": r"go|golang",
+    "api ": r"apis?",
+    "az-": r"az-\d+",
+    "product manage": r"product manage(?:ment|rs?)",
+    "project manage": r"project manage(?:ment|rs?)",
+    "data engineer": r"data engineers?",
+    "enterprise architect": r"enterprise architects?",
+    "software architect": r"software architects?",
+    "microservice": r"microservices?",
+    "distributed system": r"distributed systems?",
+    "large language model": r"large language models?",
+    "algorithm": r"algorithms?|algorithmic",
+    "data structure": r"data structures?",
+    "mental model": r"mental models?",
+    "design pattern": r"design patterns?",
+    "unit test": r"unit tests?|unit testing",
+    "refactor": r"refactor(?:ing)?",
+    "negotiation": r"negotiations?",
+    "presentation": r"presentations?",
+    "penetration test": r"penetration tests?|penetration testing",
+    "game develop": r"game develop(?:ment|ers?)",
+    "leading team": r"leading teams?",
+    "o'reilly demo": r"o['\u2019]reilly demo(?: day)?",
+    "o\u2019reilly demo": r"o['\u2019]reilly demo(?: day)?",
+}
+_TOPIC_PATTERNS = [
+    (re.compile(r"(?<!\w)(?:" + pattern + r")(?!\w)", re.I), tags)
+    for pattern, tags in [
+        *[(_PATTERN_OVERRIDES.get(pattern, re.escape(pattern.strip())), tags) for pattern, tags in TOPIC_RULES],
+        *_EXTRA_TOPIC_RULES,
+    ]
+]
+
 
 # ---------- top-level domain grouping ----------
 TAG_TO_DOMAINS: dict[str, list[str]] = {
@@ -292,7 +378,7 @@ TAG_TO_DOMAINS: dict[str, list[str]] = {
     "LangChain": ["AI"], "LlamaIndex": ["AI"], "Embeddings": ["AI"], "Vector DB": ["AI"],
     "Hugging Face": ["AI"], "Transformers": ["AI"], "Computer Vision": ["AI"], "NLP": ["AI"],
     "Reinforcement Learning": ["AI"], "Deep Learning": ["AI"], "Machine Learning": ["AI"],
-    "MLOps": ["AI", "DevOps"], "Statistics": ["AI", "Data"],
+    "MLOps": ["AI", "DevOps"], "Statistics": ["Data"],
     # Data
     "Data Analysis": ["Data"], "Data Engineering": ["Data"], "Data Science": ["Data"],
     "Data Visualization": ["Data"], "Data Lake": ["Data"], "SQL": ["Data"],
@@ -308,16 +394,18 @@ TAG_TO_DOMAINS: dict[str, list[str]] = {
     "DevOps": ["DevOps"], "CI/CD": ["DevOps"], "Docker": ["DevOps"], "Kubernetes": ["DevOps"],
     "Terraform": ["DevOps"], "Ansible": ["DevOps"], "IaC": ["DevOps"], "GitHub": ["DevOps"],
     "Git": ["DevOps"], "Version Control": ["DevOps"], "SRE": ["DevOps"], "Platform Engineering": ["DevOps"],
+    "Containers": ["DevOps"], "Observability": ["DevOps"],
     # Backend
-    "Backend": ["Backend"], "Node.js": ["Backend"], "Spring Boot": ["Backend"], ".NET": ["Backend"],
+    "Backend": ["Backend"], "Node.js": ["Backend"], "Spring Boot": ["Backend"], ".NET": ["Languages"],
     "APIs": ["Backend"], "REST": ["Backend"], "GraphQL": ["Backend"], "Microservices": ["Backend"],
     # Frontend
     "Frontend": ["Frontend"], "React": ["Frontend"], "Angular": ["Frontend"], "Vue": ["Frontend"],
     "HTML": ["Frontend"], "CSS": ["Frontend"],
     # Languages
     "Programming": ["Languages"], "Python": ["Languages"],
-    "JavaScript": ["Languages", "Frontend"], "TypeScript": ["Languages", "Frontend"],
+    "JavaScript": ["Languages"], "TypeScript": ["Languages"],
     "Rust": ["Languages"], "Go": ["Languages"], "Java": ["Languages"], "C#": ["Languages"],
+    "F#": ["Languages"],
     "C++": ["Languages"], "Scala": ["Languages"], "Kotlin": ["Languages"], "Swift": ["Languages"],
     # Security
     "Security": ["Security"], "Cybersecurity": ["Security"], "Ethical Hacking": ["Security"],
@@ -341,32 +429,63 @@ TAG_TO_DOMAINS: dict[str, list[str]] = {
     "Agile": ["Career & Soft Skills"], "Scrum": ["Career & Soft Skills"],
     "Kanban": ["Career & Soft Skills"], "Product Management": ["Career & Soft Skills"],
     "Project Management": ["Career & Soft Skills"],
-    # Other / specialised
-    "Blockchain": ["Other"], "Web3": ["Other"], "Solidity": ["Other"], "Crypto": ["Other"],
-    "Linux": ["Other"], "Red Hat": ["Other"], "Operating Systems": ["Other"],
-    "Bash": ["Other"], "Shell": ["Other"], "PowerShell": ["Other"],
-    "Networking": ["Other"], "Game Dev": ["Other"], "Unity": ["Other"], "Unreal": ["Other"],
-    "Demo": ["Other"], "Uncategorized": ["Other"],
+    "Thinking Skills": ["Career & Soft Skills"],
+    "Data Architecture": ["Data"], "Finance": ["Data"],
+    "Identity": ["Security"], "Automation": ["Software Engineering"],
+    # Specialised subjects
+    "Blockchain": ["Emerging Technology"], "Web3": ["Emerging Technology"],
+    "Solidity": ["Emerging Technology"], "Crypto": ["Emerging Technology"],
+    "Quantum Computing": ["Emerging Technology"],
+    "Linux": ["Systems & Networking"], "Red Hat": ["Systems & Networking"],
+    "Operating Systems": ["Systems & Networking"], "Bash": ["Systems & Networking"],
+    "Shell": ["Systems & Networking"], "PowerShell": ["Systems & Networking"],
+    "Networking": ["Systems & Networking"],
+    "Game Dev": ["Software Engineering"], "Unity": ["Software Engineering"], "Unreal": ["Software Engineering"],
+    "Demo": ["O'Reilly Events"],
 }
 
 DOMAIN_ORDER: list[str] = [
     "AI", "Data", "Cloud", "DevOps", "Backend", "Frontend", "Languages",
-    "Security", "Software Engineering", "Mobile", "Career & Soft Skills", "Other",
+    "Security", "Software Engineering", "Mobile", "Career & Soft Skills",
+    "Systems & Networking", "Emerging Technology", "O'Reilly Events",
+]
+
+# AI takes precedence by policy. Specific subjects precede supporting tools,
+# platforms, languages, and general professional-development tags.
+_DOMAIN_PRIORITY = [
+    "AI", "Security", "Mobile", "Emerging Technology", "Data", "DevOps",
+    "Frontend", "Backend", "Cloud", "Software Engineering", "Languages",
+    "Systems & Networking", "Career & Soft Skills", "O'Reilly Events",
 ]
 
 
 def assign_tags(event: str) -> list[str]:
-    s = f" {event.lower()} "
     tags: set[str] = set()
-    for kw, kw_tags in TOPIC_RULES:
-        if kw.lower() in s:
+    for pattern, kw_tags in _TOPIC_PATTERNS:
+        if pattern.search(event):
             tags.update(kw_tags)
+    if "Learning" in tags and "Machine Learning" in tags:
+        tags.discard("Learning")
+    if re.search(r"\.net\b", event, re.I):
+        tags.update([".NET", "Programming"])
     return sorted(tags) if tags else [UNCATEGORIZED]
 
 
-def assign_domains(tags: list[str]) -> list[str]:
-    s: set[str] = set()
+def assign_domains(tags: list[str], event: str = "") -> list[str]:
+    candidates: set[str] = set()
     for t in tags:
-        for d in TAG_TO_DOMAINS.get(t, ["Other"]):
-            s.add(d)
-    return [d for d in DOMAIN_ORDER if d in s]
+        # Certification is a format, not a subject.
+        if t != "Certification":
+            candidates.update(TAG_TO_DOMAINS.get(t, []))
+    if "AI" in candidates:
+        return ["AI"]
+    if re.search(r"\bcommunicating software architecture\b", event, re.I):
+        return ["Career & Soft Skills"]
+    if re.search(r"\b(?:network|tcp/ip|wireshark|subnetting)\b", event, re.I) and not re.search(
+        r"\b(?:security|ansible|algorithms?|linkedin)\b", event, re.I
+    ):
+        return ["Systems & Networking"]
+    for domain in _DOMAIN_PRIORITY:
+        if domain in candidates:
+            return [domain]
+    raise ValueError(f"No domain classification for {event!r}; add a topic rule before importing")

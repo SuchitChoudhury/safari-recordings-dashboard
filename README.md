@@ -33,8 +33,8 @@ search in a new tab.
 │                                                                              │
 │  extract-msg / email.parser   ─►   subject prefix match  ─►   parse          │
 │  parse → (event, presenter, received_date)                                   │
-│  assign_tags(event)        — keyword → detail tag rules (~190)               │
-│  assign_domains(tags)      — detail tag → top-level domain rollup            │
+│  assign_tags(event)        - boundary-aware detail tag rules                 │
+│  assign_domains(tags, event) - exactly one primary domain                    │
 │  dedup by (event, presenter), keep latest received_date                      │
 └──────────────────────────────────────────────────────┬───────────────────────┘
                                                       │ 3. write JSON
@@ -77,10 +77,12 @@ search in a new tab.
   `[EXTERNAL] Recording: …`, `[EXTERNAL] Online Training Recording: …`,
   `Online Training Recording: …`, plain `Recording: …`, etc.
 - **Extracts** event title, presenter, and received date.
-- **Tags** each entry with detailed topic tags (≈190 keyword rules) and rolls
-  those tags into 12 top‑level **domains**: AI, Data, Cloud, DevOps, Backend,
+- **Tags** each entry with detailed topic tags and assigns exactly one
+  primary **domain**: AI, Data, Cloud, DevOps, Backend,
   Frontend, Languages, Security, Software Engineering, Mobile,
-  Career & Soft Skills, Other.
+  Career & Soft Skills, Systems & Networking, Emerging Technology,
+  O'Reilly Events. AI takes priority whenever the course involves AI.
+  Domain counts therefore sum to the total number of recordings.
 - **De‑duplicates** by `(event, presenter)` keeping the latest received date,
   so the same training presented twice is shown once.
 - **Renders** a fast, dark‑mode SPA with full‑text search, domain chips,
@@ -160,34 +162,45 @@ collapse to a single entry (the most recent date wins).
 
 ## How tagging works
 
-Two tables in `scripts/tagging.py` drive everything:
+The classification rules live in `scripts/tagging.py`:
 
 ### 1. Detail tags — `TOPIC_RULES`
-Ordered list of `(keyword_substring, [tags])`. The lower‑cased event title is
-scanned; every matching rule contributes its tags (set union). Examples:
+Keyword and regular-expression rules scan the event title with word
+boundaries; every matching rule contributes its tags (set union). This
+avoids matching `git` inside `digital` or `rag` inside `paragraph`. Examples:
 
 | Title                                                | Tags                                                |
 | ---------------------------------------------------- | --------------------------------------------------- |
 | SQL Foundations for Data Analysis                    | `SQL`, `Data Analysis`                              |
-| Deep Learning for Beginners in 3 Weeks               | `AI`, `Deep Learning`, `Learning`, `Machine Learning` |
+| Deep Learning for Beginners in 3 Weeks               | `AI`, `Deep Learning`, `Machine Learning` |
 | Microsoft Fabric Data Engineer Associate Bootcamp    | `Azure`, `Certification`, `Data Engineering`, `Microsoft Fabric` |
 | Aligning Large Language Models                       | `AI`, `LLM`, `Machine Learning`                     |
 | Write Python Code with ChatGPT and Claude            | `AI`, `GenAI`, `Programming`, `Python`              |
 
-Anything with no match is tagged `Uncategorized` so you can spot gaps.
+An unmatched title stops ingestion or retagging with an explicit error
+before the catalog is written. Add a meaningful rule and rerun; unmatched
+recordings are not silently saved as `Uncategorized` or `Other`.
 
-### 2. Domain rollup — `TAG_TO_DOMAINS`
-Maps each detail tag to one or more top‑level domains. Domains are what the
-SPA shows as the primary chip row; selecting a domain reveals only its
-relevant detail tags. This keeps the filter UI usable with hundreds of tags.
+### 2. Primary domain - `assign_domains(tags, event)`
+`TAG_TO_DOMAINS` supplies candidate domains from the detail tags. AI always
+wins. Explicit title context handles communication and networking courses;
+otherwise specific subjects take priority over supporting tools and platforms:
+Security, Mobile, Emerging Technology, Data, DevOps, Frontend, Backend,
+Cloud, Software Engineering, Languages, Systems & Networking, then Career
+& Soft Skills and O'Reilly Events. Certification alone is not a subject.
+
+Each recording keeps a one-element `domains` array for the SPA. Detail tags
+can overlap, but primary domains cannot, so every recording is counted once.
+Selecting a domain reveals its recordings' detail tags.
 
 ### Tweak tags without re‑reading email
 After editing rules:
 ```powershell
 python scripts\retag.py
 ```
-Re‑applies tags & domains to every entry in `data/data.json` in place. No
-emails are re‑parsed.
+Re-applies tags and the primary domain to every entry in `data/data.json`
+in place, preserving all other fields. No emails are re-parsed. To update
+the bundled sample, use `python scripts\retag.py --file data\data.sample.json`.
 
 ---
 
@@ -220,7 +233,7 @@ Each entry in `data/data.json` (and the sample) has at minimum:
 | `event`     | string          | ✅        | Course title (used for search & search URL) |
 | `presenter` | string          | ✅        | Presenter name(s) |
 | `received`  | `YYYY-MM-DD`    | ✅        | Date the recording email arrived (UTC) |
-| `domains`   | string[]        | ✅        | Top‑level domain rollup (computed from tags) |
+| `domains`   | string[]        | ✅        | Exactly one primary domain (computed from title and tags) |
 | `tags`      | string[]        | ✅        | Detail tags (computed from event title) |
 | `subject`   | string          | optional | Original raw email subject |
 | `sender`    | string          | optional | Sender SMTP address |
@@ -284,8 +297,9 @@ those fields belong in a public dataset before committing.
 - **`open-fail` on a file.** `extract-msg` couldn't read it (corrupt or
   unsupported format). The script exits non‑zero and lists the file; either
   re‑drag it from Outlook or delete just that one file.
-- **Lots of `Uncategorized` entries.** Add new keyword rules to `TOPIC_RULES`
-  in `scripts/tagging.py`, then run `python scripts/retag.py`.
+- **`No domain classification` error.** Add a meaningful keyword or phrase
+  rule in `scripts/tagging.py`, then rerun the ingestion or retagging command.
+  The catalog is not written when classification fails.
 - **SPA shows the bundled sample even after ingesting.** Hard refresh the
   page (`Ctrl + Shift + R`) once. The no‑cache headers prevent this from
   happening again.
